@@ -2,8 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-    "type": "module",
-
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsc --build && node dist/index.js"
@@ -14,6 +13,7 @@
   "description": "",
   "dependencies": {
     "@types/ws": "^8.18.1",
+    "chess.js": "^1.4.0",
     "ws": "^8.20.0"
   }
 }
