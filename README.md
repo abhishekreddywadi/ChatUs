@@ -2,6 +2,10 @@
 
 A full-stack chess application where two players can play together in real-time using WebSockets.
 
+## Demo
+
+[![Watch the demo](https://img.youtube.com/vi/U2WpYTLGl1g/0.jpg)](https://www.youtube.com/watch?v=U2WpYTLGl1g)
+
 ## Project Overview
 
 ChessUs is a multiplayer chess game built with:
