@@ -1,0 +1,71 @@
+{
+  "compilerOptions": {
+    // ============================================
+    // FILE LAYOUT CONFIGURATION
+    // ============================================
+    // rootDir: Where our TypeScript source files are located
+    // outDir: Where compiled JavaScript files will be output
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // ============================================
+    // MODULE & TARGET CONFIGURATION
+    // ============================================
+    // ESNext: Use the latest ECMAScript features
+    // NodeNext: Modern Node.js module resolution
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ESNext",
+
+    // ============================================
+    // TYPE DEFINITIONS
+    // ============================================
+    // Include type definitions for Node.js
+    "types": ["node"],
+
+    // ============================================
+    // OUTPUT OPTIONS
+    // ============================================
+    // Generate source maps for debugging
+    "sourceMap": true,
+    // Generate .d.ts declaration files for TypeScript consumers
+    "declaration": true,
+    "declarationMap": true,
+
+    // ============================================
+    // STRICT TYPE CHECKING
+    // ============================================
+    // Enable all strict type checking options for safer code
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // ============================================
+    // OTHER OPTIONS
+    // ============================================
+    // Skip type checking of declaration files to speed up compilation
+    "skipLibCheck": true,
+    // Allow importing JSON files
+    "resolveJsonModule": true,
+    // Enable ES module interoperability
+    "esModuleInterop": true,
+    // Allow synthetic default imports
+    "allowSyntheticDefaultImports": true,
+
+    // ============================================
+    // DEPRECATION WARNING FIX
+    // ============================================
+    // Ignore deprecation warnings for baseUrl/paths in TS 6.0
+    "ignoreDeprecations": "6.0"
+  },
+
+  // ============================================
+  // INCLUDE/EXCLUDE FILES
+  // ============================================
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

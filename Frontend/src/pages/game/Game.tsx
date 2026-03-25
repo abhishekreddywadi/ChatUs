@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useSocket } from "../../hooks/useSocket";
 import { Chess } from "chess.js";
 import { ChessBoard } from "./ChessBoard";
@@ -15,14 +15,12 @@ type GameState = "idle" | "waiting" | "playing" | "game_over";
  * Handles game initialization, move processing, and board updates
  */
 export const Game = () => {
-    // Get WebSocket connection and connection status from custom hook
-    const { status, socket } = useSocket();
-
     // Local chess.js instance for move validation and board state
-    // Using useRef to avoid closure issues in useEffect
+    // Using useRef to avoid closure issues in event handlers
     const chessRef = useRef(new Chess());
 
     // State for the current board configuration to pass to ChessBoard component
+    // eslint-disable-next-line react-hooks/refs
     const [board, setBoard] = useState(chessRef.current.board());
 
     // Track the current game state
@@ -35,74 +33,69 @@ export const Game = () => {
     const [gameOverMessage, setGameOverMessage] = useState<string | null>(null);
 
     /**
-     * useEffect: Sets up WebSocket message handler
-     * Listens for game events from the server and updates local state accordingly
-     * Only re-runs when socket changes (via dependency array)
+     * Handles incoming WebSocket messages from the server
+     * Processes different message types and updates game state accordingly
      */
-    useEffect(() => {
-        // Exit early if socket is not available
-        if (!socket || !socket.current) {
-            return;
-        }
+    const handleMessage = useCallback((event: MessageEvent) => {
+        const data = JSON.parse(event.data);
 
-        // Handle incoming WebSocket messages from the server
-        socket.current.onmessage = (event) => {
-            const data = JSON.parse(event.data);
+        switch (data.type) {
+            case "Game Started":
+                // Game has been initialized by server
+                // Player receives their assigned color
+                chessRef.current = new Chess();
+                setBoard(chessRef.current.board());
+                setPlayerColor(data.color === "white" ? "white" : "black");
+                setGameState("playing");
+                setGameOverMessage(null);
+                console.log("Game Started! You are playing as:", data.color);
+                break;
 
-            switch (data.type) {
-                case "Game Started":
-                    // Game has been initialized by server
-                    // Player receives their assigned color
-                    chessRef.current = new Chess();
+            case "move":
+                // Apply the move received from server to local chess instance
+                // This keeps client in sync with server game state
+                { const moveResult = chessRef.current.move(data.payload);
+                if (moveResult) {
                     setBoard(chessRef.current.board());
-                    setPlayerColor(data.color === "white" ? "white" : "black");
-                    setGameState("playing");
-                    setGameOverMessage(null);
-                    console.log("Game Started! You are playing as:", data.color);
-                    break;
+                    console.log("Move made:", moveResult);
+                } else {
+                    console.error("Invalid move received from server:", data.payload);
+                }
+                break; }
 
-                case "move":
-                    // Apply the move received from server to local chess instance
-                    // This keeps client in sync with server game state
-                    const moveResult = chessRef.current.move(data.payload);
-                    if (moveResult) {
-                        setBoard(chessRef.current.board());
-                        console.log("Move made:", moveResult);
-                    } else {
-                        console.error("Invalid move received from server:", data.payload);
-                    }
-                    break;
+            case "white won":
+                // Game over - white won
+                setGameState("game_over");
+                setGameOverMessage("White wins!");
+                console.log("Game Over - White won");
+                break;
 
-                case "white won":
-                    // Game over - white won
-                    setGameState("game_over");
-                    setGameOverMessage("White wins! 🏆");
-                    console.log("Game Over - White won");
-                    break;
+            case "black won":
+                // Game over - black won
+                setGameState("game_over");
+                setGameOverMessage("Black wins!");
+                console.log("Game Over - Black won");
+                break;
 
-                case "black won":
-                    // Game over - black won
-                    setGameState("game_over");
-                    setGameOverMessage("Black wins! 🏆");
-                    console.log("Game Over - Black won");
-                    break;
+            case "opponent_disconnected":
+                // Opponent left the game - notify player
+                setGameState("game_over");
+                setGameOverMessage("Opponent Disconnected");
+                console.log("Opponent disconnected");
+                break;
 
-                case "opponent_disconnected":
-                    // Opponent left the game - notify player
-                    setGameState("game_over");
-                    setGameOverMessage("Opponent Disconnected");
-                    console.log("Opponent disconnected");
-                    break;
+            case "game_over":
+                // Generic game over message
+                setGameState("game_over");
+                setGameOverMessage("Game Over!");
+                console.log("Game Over");
+                break;
+        }
+    }, []); // Empty deps - chessRef doesn't cause re-renders
 
-                case "game_over":
-                    // Generic game over message
-                    setGameState("game_over");
-                    setGameOverMessage("Game Over!");
-                    console.log("Game Over");
-                    break;
-            }
-        };
-    }, [socket]); // Only re-run when socket reference changes
+    // Get WebSocket connection and connection status from custom hook
+    // Pass the message handler to avoid modifying hook return values
+    const { status, socket } = useSocket(handleMessage);
 
     /**
      * Handles the PLAY button click
